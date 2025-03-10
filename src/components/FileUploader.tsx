@@ -37,8 +37,8 @@ const DocxToJson = () => {
   
         const { id, data } = extractStructuredData(htmlContent);
         // Create an object with the ID as the key
-        const finalOutput = id ? { [id]: data } : data;
-        setJsonOutput(JSON.stringify(finalOutput, null, 2));
+        const outputData = id ? { [id]: data } : data;
+        setJsonOutput(JSON.stringify(outputData, null, 2));
       } catch (error) {
         console.error("Error processing DOCX:", error);
         setJsonOutput("Error processing file.");
@@ -104,13 +104,17 @@ const DocxToJson = () => {
       const day = date.getDate().toString().padStart(2, "0");
       const communicationNumber = "1";
 
-      documentId = `${year}-${month}-${day}-communication${communicationNumber}`;
-      // Remove the date from the data since it's part of the ID
+      const id = `${year}-${month}-${day}-communication${communicationNumber}`;
+      // Remove date from jsonData since it's in the ID
       delete jsonData.date;
+      
+      return {
+        id,
+        data: jsonData
+      };
     }
 
     return {
-      id: documentId,
       data: jsonData
     };
   };
