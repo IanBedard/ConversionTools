@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import mammoth from "mammoth";
 
+// Update the interface to remove id since it will be the root key
 interface CommunicationData {
   error?: string;
-  id?: string;
   title?: string;
   category?: string;
   date?: string;
@@ -35,8 +35,10 @@ const DocxToJson = () => {
         const result = await mammoth.convertToHtml({ arrayBuffer });
         const htmlContent = result.value;
   
-        const structuredJson = extractStructuredData(htmlContent); // Convert to structured format
-        setJsonOutput(JSON.stringify(structuredJson, null, 2));
+        const { id, data } = extractStructuredData(htmlContent);
+        // Create an object with the ID as the key
+        const finalOutput = id ? { [id]: data } : data;
+        setJsonOutput(JSON.stringify(finalOutput, null, 2));
       } catch (error) {
         console.error("Error processing DOCX:", error);
         setJsonOutput("Error processing file.");
@@ -46,14 +48,15 @@ const DocxToJson = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  const extractStructuredData = (htmlContent: string): CommunicationData => {
+  const extractStructuredData = (htmlContent: string): { id?: string; data: CommunicationData } => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
     const table = doc.querySelector("table");
 
-    if (!table) return { error: "No table found in the document." };
+    if (!table) return { data: { error: "No table found in the document." } };
 
     const jsonData: CommunicationData = {};
+    let documentId: string | undefined;
 
     const rows = table.querySelectorAll("tr");
     rows.forEach((row) => {
@@ -101,10 +104,15 @@ const DocxToJson = () => {
       const day = date.getDate().toString().padStart(2, "0");
       const communicationNumber = "1";
 
-      jsonData.id = `${year}-${month}-${day}-communication${communicationNumber}`;
+      documentId = `${year}-${month}-${day}-communication${communicationNumber}`;
+      // Remove the date from the data since it's part of the ID
+      delete jsonData.date;
     }
 
-    return jsonData;
+    return {
+      id: documentId,
+      data: jsonData
+    };
   };
 
   return (
