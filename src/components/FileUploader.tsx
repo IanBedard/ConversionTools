@@ -56,8 +56,7 @@ const DocxToJson = () => {
     if (!table) return { data: { error: "No table found in the document." } };
 
     const jsonData: CommunicationData = {};
-    let documentId: string | undefined;
-
+    
     const rows = table.querySelectorAll("tr");
     rows.forEach((row) => {
       const columns = row.querySelectorAll("th, td");
